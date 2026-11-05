@@ -1,0 +1,114 @@
+[
+    {
+        "date": "2024-03-26",
+        "authorName": "User One",
+        "authorEmail": "user-one@edpinabox.com",
+        "reviewers": [
+            {
+                "reviewerName": "user-two@edpinabox.com",
+                "reviewerEmail": "user-two@edpinabox.com"
+            }
+        ],
+        "url": "https://bitbucket-edpinabox.com/projects/demo-project/repos/demo-project-backend/pull-requests/2",
+        "commit": "7b65593b2fccd997c5d2633265aa07cfa3cf6e9f",
+        "component": "edpt3-demo-app-backend"
+    },
+    {
+        "date": "2024-03-26",
+        "authorName": "admin",
+        "authorEmail": "admin@edpinabox.com",
+        "reviewers": [
+            {
+                "reviewerName": "user-two@edpinabox.com",
+                "reviewerEmail": "user-two@edpinabox.com"
+            }
+        ],
+        "url": "https://bitbucket-edpinabox.com/projects/demo-project/repos/demo-project-backend/pull-requests/2",
+        "commit": "64989dcb760d21f2c2ab872c3847fb7fe3b26ce5",
+        "component": "edpt3-demo-app-backend"
+    },
+    {
+        "date": "2024-03-26",
+        "authorName": "User One",
+        "authorEmail": "user-one@edpinabox.com",
+        "reviewers": [
+            {
+                "reviewerName": "user-two@edpinabox.com",
+                "reviewerEmail": "user-two@edpinabox.com"
+            }
+        ],
+        "url": "https://bitbucket-edpinabox.com/projects/demo-project/repos/demo-project-backend/pull-requests/1",
+        "commit": "7b65593b1fccd997c5d1633165aa07cfa3cf6e9f",
+        "component": "edpt3-demo-app-backend"
+    },
+    {
+        "date": "2024-03-26",
+        "authorName": "admin",
+        "authorEmail": "admin@edpinabox.com",
+        "reviewers": [
+            {
+                "reviewerName": "user-two@edpinabox.com",
+                "reviewerEmail": "user-two@edpinabox.com"
+            }
+        ],
+        "url": "https://bitbucket-edpinabox.com/projects/demo-project/repos/demo-project-backend/pull-requests/1",
+        "commit": "64989dcb760d11f1c1ab871c3847fb7fe3b16ce5",
+        "component": "edpt3-demo-app-backend"
+    },
+    {
+        "date": "2024-03-26",
+        "authorName": "User One",
+        "authorEmail": "user-one@edpinabox.com",
+        "reviewers": [
+            {
+                "reviewerName": "user-two@edpinabox.com",
+                "reviewerEmail": "user-two@edpinabox.com"
+            }
+        ],
+        "url": "https://bitbucket-edpinabox.com/projects/demo-project/repos/demo-project-front-end/pull-requests/3",
+        "commit": "e48750fc61d9f665b3780ef37b70633fd44035d5",
+        "component": "edpt3-demo-app-front-end"
+    },
+    {
+        "date": "2024-03-26",
+        "authorName": "admin",
+        "authorEmail": "admin@edpinabox.com",
+        "reviewers": [
+            {
+                "reviewerName": "user-two@edpinabox.com",
+                "reviewerEmail": "user-two@edpinabox.com"
+            }
+        ],
+        "url": "https://bitbucket-edpinabox.com/projects/demo-project/repos/demo-project-front-end/pull-requests/3",
+        "commit": "659b5d6fc3d2e7794880965eb5630e3f217a40a1",
+        "component": "edpt3-demo-app-front-end"
+    },
+    {
+        "date": "2024-03-26",
+        "authorName": "User One",
+        "authorEmail": "user-one@edpinabox.com",
+        "reviewers": [
+            {
+                "reviewerName": "user-two@edpinabox.com",
+                "reviewerEmail": "user-two@edpinabox.com"
+            }
+        ],
+        "url": "https://bitbucket-edpinabox.com/projects/demo-project/repos/demo-project-front-end/pull-requests/3",
+        "commit": "83f1c5026e2727bbccfbfa03fef517a91063295a",
+        "component": "edpt3-demo-app-front-end"
+    },
+    {
+        "date": "2024-03-26",
+        "authorName": "admin",
+        "authorEmail": "admin@edpinabox.com",
+        "reviewers": [
+            {
+                "reviewerName": "user-two@edpinabox.com",
+                "reviewerEmail": "user-two@edpinabox.com"
+            }
+        ],
+        "url": "https://bitbucket-edpinabox.com/projects/demo-project/repos/demo-project-front-end/pull-requests/3",
+        "commit": "f9e7ce8fe819dac98980e7a8949f1ae7fa3c1682",
+        "component": "edpt3-demo-app-front-end"
+    }
+]

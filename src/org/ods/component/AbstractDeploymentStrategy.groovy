@@ -1,0 +1,47 @@
+package org.ods.component
+
+import groovy.transform.TypeChecked
+import groovy.transform.TypeCheckingMode
+import org.ods.services.OpenShiftService
+import org.ods.util.PodData
+
+abstract class AbstractDeploymentStrategy implements IDeploymentStrategy {
+
+    // Deployment resource kinds that are supported for Helm.
+    public static final List<String> DEPLOYMENT_KINDS = [
+        OpenShiftService.DEPLOYMENT_KIND, OpenShiftService.DEPLOYMENTCONFIG_KIND,
+        OpenShiftService.STATEFULSET_KIND, OpenShiftService.CRONJOB_KIND,
+    ]
+    public static final List<String> TAILOR_DEPLOYMENT_KINDS = [
+        OpenShiftService.DEPLOYMENT_KIND, OpenShiftService.DEPLOYMENTCONFIG_KIND,
+    ]
+
+    @Override
+    abstract Map<String, List<PodData>> deploy()
+
+    // Fetches original kubernetes revisions of deployment resources.
+    //
+    // returns a two level map with keys resourceKind -> resourceName -> revision (int)
+    protected Map<String, Map<String, Integer>> fetchOriginalVersions(Map<String, List<String>> deploymentResources) {
+        def originalVersions = [:]
+        deploymentResources.each { resourceKind, resourceNames ->
+            if (!originalVersions.containsKey(resourceKind)) {
+                originalVersions[resourceKind] = [:]
+            }
+            resourceNames.each { resourceName ->
+                originalVersions[resourceKind][resourceName] = openShift.getRevision(
+                    context.targetProject, resourceKind, resourceName
+                )
+            }
+        }
+        originalVersions
+    }
+
+    @TypeChecked(TypeCheckingMode.SKIP)
+    protected Set<String> getBuiltImages() {
+        context.buildArtifactURIs.builds.keySet().findAll { it ->
+            !it.startsWith("imported-")
+        }
+    }
+
+}

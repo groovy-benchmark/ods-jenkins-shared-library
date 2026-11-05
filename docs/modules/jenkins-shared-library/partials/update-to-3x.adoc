@@ -1,0 +1,125 @@
+== Jenkins Shared Library changes
+
+=== Renamed pipelines and stages
+
+3.x ships with the three pipelines instead of just one. In 2.x, the shared
+library offered one pipeline to build components, named `odsPipeline`. This has
+been renamed to `odsComponentPipeline` to make its purpose clearer and to
+distinguish it from the other pipelines, `odsQuickstarterPipeline` (to
+provision quickstarters) and `odsOrchestrationPipeline` (to orchestrate
+multiple repositories using the release manager).
+
+To provide backwards compatibility, `odsPipeline` is still available, but
+deprecated and will be removed in ODS 4.
+
+In line with this change, the stages have been renamed too, which also makes
+them easier to distinguish from custom stages written by yourself in the
+`Jenkinsfile`. As with the pipeline, the old stages are still available but
+slated for removal in ODS 4. Here's a list of the changes:
+
+- `stageScanForSonarqube` is now `odsComponentStageScanWithSonar`
+- `stageScanForSnyk` is now `odsComponentStageScanWithSnyk`
+- `stageStartOpenshiftBuild` is now `odsComponentStageBuildOpenShiftImage`
+- `stageDeployToOpenshift` is now `odsComponentStageRolloutOpenShiftDeployment`
+- `stageUploadToNexus` is now `odsComponentStageUploadToNexus`
+
+Please note the new casing (e.g. `OpenShift` instead of `Openshift`). Further,
+the new stages all take the same two arguments: `IContext context` and
+`Map config = [:]`. Please see the
+xref:jenkins-shared-library:component-pipeline.adoc[documentation] for details.
+In particular, some options which would previously have been set on
+`odsPipeline` can and should be set on the stage where they are used (however
+all options have been kept for backwards compatibility).
+
+=== Reduced boilerplate
+
+A `Jenkinsfile` in 2.x looks roughly like this:
+
+[source,groovy]
+----
+def final projectId = 'foo'
+def final componentId = 'bar'
+def final credentialsId = "${projectId}-cd-cd-user-with-password"
+def dockerRegistry
+node {
+  dockerRegistry = env.DOCKER_REGISTRY
+}
+
+@Library('ods-jenkins-shared-library@2.x') _
+
+odsPipeline(
+  image: "${dockerRegistry}/cd/jenkins-slave-golang:2.x",
+  projectId: projectId,
+  componentId: componentId,
+  branchToEnvironmentMapping: ['master': 'dev']
+) { context ->
+  stageScanForSonarqube(context)
+  stageStartOpenshiftBuild(context)
+  stageDeployToOpenshift(context)
+}
+----
+
+That is a lot of boilerplate. 3.x reduces this dramatically:
+[source,groovy]
+----
+@Library('ods-jenkins-shared-library@3.x') _
+
+odsComponentPipeline(
+  imageStreamTag: 'ods/jenkins-agent-golang:3.x',
+  branchToEnvironmentMapping: ['master': 'dev']
+) { context ->
+  odsComponentStageScanWithSonar(context)
+  odsComponentStageBuildOpenShiftImage(context)
+  odsComponentStageRolloutOpenShiftDeployment(context)
+}
+----
+
+Note that the new `Jenkinsfile` example already uses the new pipeline/stage
+names as outlined above. Apart from this, it makes use of a new config option,
+`imageStreamTag` which removes the need to read the `DOCKER_REGISTRY`
+environment variable. If you need it, the `image` config is still present (e.g.
+to reference images outside of OpenShift). `projectId` and `componentId` are
+now automatically configured, but can still be set if desired.
+
+=== Changed agent images
+
+Up to and including 2.x, Jenkins used "slave images" to do its work. They have
+been renamed to "agent images" in 3.x. All new agent images are located in the
+new central namespace `ods`. Therefore, you need to update the references in
+your `Jenkinsfile` (as shown above):
+
+* `cd/jenkins-slave-base` is now `ods/jenkins-agent-base`
+* `cd/jenkins-slave-golang` is now `ods/jenkins-agent-golang`
+* `cd/jenkins-slave-maven` is now `ods/jenkins-agent-maven`
+* `cd/jenkins-slave-nodejs10-angular` is now `ods/jenkins-agent-nodejs10-angular`
+* `cd/jenkins-slave-python` is now `ods/jenkins-agent-python`
+* `cd/jenkins-slave-scala` is now `ods/jenkins-agent-scala`
+
+=== Changed `context` properties
+
+The `context` object available to use in stages has been slimmed down by
+removing properties unlikely to be useful to author stages (such as resource
+constraints of the Jenkins agent pod). Please review
+xref:jenkins-shared-library:component-pipeline.adoc#_pipeline_context[the documentation]
+in case your authored stages make heavy use of the `context` object.
+
+CAUTION: One notable change to the `context` object is that `bitbucketHost` did
+not include the scheme previously. Now, `bitbucketHost` is an alias for
+`bitbucketUrl` which does include the scheme. This change was made to align the
+property with `nexusHost` and `nexusUrl`, which both include the scheme as well.
+If you used `context.bitbucketHost` in one of your `Jenkinsfile`s, you may now
+use `context.bitbucketHostWithoutScheme`.
+
+TIP: A notable addition to the `context` object is a new property `issueId`, which
+exposes the Jira issue ID (such as `123` from branch `feature/FOO-123-bar-baz`).
+
+=== Different image tags
+
+Previously, images produced by `odsComponentStageBuildOpenShiftImage` where
+tagged with `context.tagversion`, which consisted of the Jenkins build number
+and the (shortened) Git commit (e.g. `7-cd3e9082`). This made it difficult
+for other processes (unaware of the Jenkins build number) to find those images.
+
+The images are now tagged with just the (shortened) Git commit (e.g. `cd3e9082`).
+This change also has the huge benefit that it allows to promote images between
+environments (avoiding to rebuild them) using the new stage xref:jenkins-shared-library:component-pipeline.adoc#_odscomponentstageimportopenshiftimageorelse[odsComponentStageImportOpenShiftImageOrElse].

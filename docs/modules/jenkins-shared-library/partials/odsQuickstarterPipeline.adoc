@@ -1,0 +1,162 @@
+== Pipeline Options
+
+`odsQuickstarterPipeline` can be customized by passing configuration options like this:
+----
+odsQuickstarterPipeline(
+  imageStreamTag: 'ods/jenkins-agent-golang:3.x'
+)
+----
+
+Available options are:
+
+[cols="1,2"]
+|===
+| Property | Description
+
+| image
+| Container image to use for the Jenkins agent container. This value is not used when `podContainers` is set.
+
+| imageStreamTag
+| Container image tag of an `ImageStream` in your OpenShift cluster to use for the Jenkins agent container. This value is not used when `podContainers` or `image` is set.
+
+| alwaysPullImage
+| Determine whether to always pull the container image before each build run. Defaults to `true`. This value is not used when `podContainers` is set.
+
+| resourceRequestMemory
+| How much memory the container requests - defaults to 1Gi. This value is not used when `podContainers` is set.
+
+| resourceLimitMemory
+| Maximum memory the container can use - defaults to 2Gi. This value is not used when `podContainers` is set.
+
+| resourceRequestCpu
+| How much CPU the container requests - defaults to 10m. This value is not used when `podContainers` is set.
+
+| resourceLimitCpu
+| Maximum CPU the container can use - defaults to 300m. This value is not used when `podContainers` is set.
+
+| podLabel
+| Pod label, set by default to a random label to avoid caching issues. Set to a stable label if you want to reuse pods across builds.
+
+| podContainers
+| Custom pod containers to use if the default, automatically configured container is not suitable for your use case (e.g. if you need multiple containers such as app and database). See <<_agent_customization,Agent customization>>.
+
+| podVolumes
+| Volumes to make available to the pod.
+
+| podServiceAccount
+| Serviceaccount to use when running the pod.
+
+| sourceDir
+| The source directory of the quickstarter, relative to the root of the repository. Defaults to the directory containing the `Jenkinsfile`.
+
+| targetDir
+| The target directory in which the component files are places. Defaults to `out`.
+|===
+
+== Pipeline Context
+
+When you write custom stages inside the closure passed to `odsQuickstarterPipeline`, you have access to the `context`, which is assembled for you on the master node. The `context` can be influenced by changing the config map passed to `odsQuickstarterPipeline`, see <<_pipeline_options,Pipeline Options>>.
+
+The `context` object contains the following properties:
+
+[cols="1,2"]
+|===
+| Property | Description
+
+| jobName
+| Value of JOB_NAME. It is the name of the project of the build.
+
+| buildNumber
+| Value of BUILD_NUMBER. The current build number, such as `153`.
+
+| buildUrl
+| Value of BUILD_URL. The URL where the results of the build can be found (e.g. `http://buildserver/jenkins/job/MyJobName/123/`)
+
+| buildTime
+| Time of the build, collected when the odsQuickstarterPipeline starts.
+
+| cdUserCredentialsId
+| Credentials identifier (Credentials are created and named automatically by the OpenShift Jenkins plugin).
+
+| sourceDir
+| The source directory of the quickstarter, relative to the root of the repository. Defaults to the directory containing the `Jenkinsfile`.
+
+| targetDir
+| The target directory in which the component files are places. Defaults to `out`.
+
+| projectId
+| Project ID, e.g. `foo`.
+
+| componentId
+| Component ID, e.g. `be-auth-service`.
+
+| packageName
+| Package name, retrieved from `PACKAGE_NAME` build parameter.
+
+| group
+| Group, retrieved from `GROUP` build parameter.
+
+| odsNamespace
+| Central namespace where images are located, retrieved from `ODS_NAMESPACE` build parameter.
+
+| odsImageTag
+| ODS image tag. Retrieved from `ODS_IMAGE_TAG` build parameter. If not set, defaults to `latest`.
+
+| odsGitRef
+| ODS Git ref. Retrieved from `ODS_GIT_REF` build parameter. If not set, defaults to `master`.
+
+| agentImageTag
+| Image tag used for the agent pod, retrieved from `odsImageTag` unless the `AGENT_IMAGE_TAG` build parameter is set.
+
+| sharedLibraryRef
+| Git reference used for the Jenkins shared library, retrieved from `odsImageTag` unless the `SHARED_LIBRARY_REF` build parameter is set.
+
+| bitbucketUrl
+| Bitbucket URL - value taken from `BITBUCKET_URL`. If BITBUCKET_URL is not present, it will default to `https://<BITBUCKET_HOST>``. `bitbucketHost` is an alias for `bitbucketUrl`.
+
+| gitUrlHttp
+| URL of the Git repository to push to.
+|===
+
+== Advanced
+
+=== Agent customization
+
+The agent used in the pipeline can be customized by adjusting the `image` (or `imageStreamTag` to
+use. Further, `alwaysPullImage` (defaulting to `true`) can be used to
+determine whether this image should be refreshed on each build.
+
+Resource constraints of the container can be changed via `resourceRequestCpu`,
+`resourceLimitCpu`, `resourceRequestMemory` and `resourceLimitMemory`.
+
+The setting `podVolumes` allows to mount persistent volume claims to the pod
+(the value is passed to the `podTemplate` call as `volumes`).
+
+To completely control the container(s) within the pod, set `podContainers`
+(which is passed to the `podTemplate` call as `containers`).
+
+Configuring of a customized agent container in a `Jenkinsfile`:
+----
+odsQuickstarterPipeline(
+  projectId: projectId,
+  podContainers: [
+    containerTemplate(
+      name: 'jnlp', // do not change, see https://github.com/jenkinsci/kubernetes-plugin#constraints
+      image: "${env.DOCKER_REGISTRY}/foo-cd/jenkins-agent-custom",
+      workingDir: '/tmp',
+      resourceRequestCpu: '100m',
+      resourceLimitCpu: '500m',
+      resourceRequestMemory: '2Gi',
+      resourceLimitMemory: '4Gi',
+      alwaysPullImage: true,
+      args: ''
+    )
+  ],
+  ...
+  ) { context ->
+  stageBuild(context)
+  ...
+}
+----
+See the https://github.com/jenkinsci/kubernetes-plugin#pod-and-container-template-configuration[kubernetes-plugin]
+documentation for possible configuration.

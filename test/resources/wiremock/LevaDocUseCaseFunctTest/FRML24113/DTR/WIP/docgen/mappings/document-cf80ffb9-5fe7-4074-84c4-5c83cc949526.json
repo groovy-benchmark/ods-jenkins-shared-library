@@ -1,0 +1,101 @@
+{
+    "id": "cf80ffb9-5fe7-4074-84c4-5c83cc949526",
+    "name": "document",
+    "request": {
+        "url": "/document",
+        "method": "POST",
+        "bodyPatterns": [
+            {
+                "equalToJson": {
+                    "metadata": {
+                        "type": "Overall-Cover",
+                        "version": "1.2"
+                    },
+                    "data": {
+                        "metadata": {
+                            "id": null,
+                            "name": "Project frml24113",
+                            "description": "Description of frml24113.",
+                            "type": "Overall Software Development Testing Report",
+                            "version": "4.0",
+                            "date_created": "${json-unit.any-string}",
+                            "buildParameter": {
+                                "projectKey": "FRML24113",
+                                "targetEnvironment": "dev",
+                                "targetEnvironmentToken": "D",
+                                "version": "WIP",
+                                "configItem": "BI-IT-DEVSTACK",
+                                "changeId": "someChangeId"
+                            },
+                            "git": {
+                                "commit": "1e84b5100e09d9b6c5ea1b6c2ccee8957391beec",
+                                "url": "https://bitbucket/scm/ofi2004/ofi2004-release.git",
+                                "baseTag": "ods-generated-v3.0-3.0-0b11-D",
+                                "targetTag": "ods-generated-v3.0-3.0-0b11-D",
+                                "author": "s2o",
+                                "message": "Swingin' The Bottle",
+                                "time": "2021-04-20T14:58:31.042152"
+                            },
+                            "openShift": {
+                                "apiUrl": "https://openshift-sample"
+                            },
+                            "jenkins": {
+                                "buildNumber": "666",
+                                "buildUrl": "https://jenkins-sample",
+                                "jobName": "ofi2004-cd/ofi2004-cd-release-master"
+                            },
+                            "referencedDocs": {
+                                "CSD": "BI-IT-DEVSTACK / See version created within this change",
+                                "CSD_version": "4.0/5",
+                                "SSDS": "BI-IT-DEVSTACK / See version created within this change",
+                                "SSDS_version": "4.0/5",
+                                "RA": "BI-IT-DEVSTACK / See version created within this change",
+                                "RA_version": "4.0/5",
+                                "TRC": "BI-IT-DEVSTACK / See version created within this change",
+                                "TRC_version": "4.0/4",
+                                "DTP": "BI-IT-DEVSTACK / See version created within this change",
+                                "DTP_version": "4.0/5",
+                                "DTR": "BI-IT-DEVSTACK / See version created within this change",
+                                "DTR_version": "4.0/5",
+                                "CFTP": "BI-IT-DEVSTACK / See version created within this change",
+                                "CFTP_version": "4.0/5",
+                                "CFTR": "BI-IT-DEVSTACK / See version created within this change",
+                                "CFTR_version": "4.0/4",
+                                "TIR": "BI-IT-DEVSTACK / See version created within this change",
+                                "TIR_version": "4.0/5",
+                                "TIP": "BI-IT-DEVSTACK / See version created within this change",
+                                "TIP_version": "4.0/5"
+                            },
+                            "header": [
+                                "Overall Software Development Testing Report, Config Item: BI-IT-DEVSTACK"
+                            ]
+                        },
+                        "data": {
+                            "sections": [
+                                {
+                                    "heading": "DTR for component: thefirst (merged)"
+                                },
+                                {
+                                    "heading": "DTR for component: thesecond (merged)"
+                                }
+                            ]
+                        }
+                    }
+                },
+                "ignoreArrayOrder": true,
+                "ignoreExtraElements": true
+            }
+        ]
+    },
+    "response": {
+        "status": 200,
+        "bodyFileName": "document-cf80ffb9-5fe7-4074-84c4-5c83cc949526.json",
+        "headers": {
+            "Content-Type": "application/json;charset=UTF-8",
+            "Set-Cookie": "4856c8d0449a2bdad6be50b8978de7d0=7c57b701aa445e0a648a4d42c590d475; path=/; HttpOnly; Secure; SameSite=None"
+        }
+    },
+    "uuid": "cf80ffb9-5fe7-4074-84c4-5c83cc949526",
+    "persistent": true,
+    "insertionIndex": 1
+}

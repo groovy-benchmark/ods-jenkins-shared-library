@@ -1,0 +1,437 @@
+== Pipeline Options
+
+`odsComponentPipeline` can be customized by passing configuration options like this:
+
+[source,groovy]
+----
+odsComponentPipeline(
+  imageStreamTag: 'ods/jenkins-agent-golang:3.x',
+  dockerDir: 'foo'
+)
+----
+
+Available options are:
+
+[cols="1,2"]
+|===
+| Property | Description
+
+| image
+| Container image to use for the Jenkins agent container. This value is not used when `podContainers` is set.
+
+| imageStreamTag
+| Container image tag of an `ImageStream` in your OpenShift cluster to use for the Jenkins agent container. This value is not used when `podContainers` or `image` is set.
+
+| alwaysPullImage
+| Determine whether to always pull the container image before each build run. Defaults to `true`. This value is not used when `podContainers` is set.
+
+| resourceRequestMemory
+| How much memory the container requests - defaults to 1Gi. This value is not used when `podContainers` is set.
+
+| resourceLimitMemory
+| Maximum memory the container can use - defaults to 2Gi. This value is not used when `podContainers` is set.
+
+| resourceRequestCpu
+| How much CPU the container requests - defaults to 10m. This value is not used when `podContainers` is set.
+
+| resourceLimitCpu
+| Maximum CPU the container can use - defaults to 300m. This value is not used when `podContainers` is set.
+
+| podLabel
+| Pod label, set by default to a random label to avoid caching issues. Set to a stable label if you want to reuse pods across builds.
+
+| podContainers
+| Custom pod containers to use if the default, automatically configured container is not suitable for your use case (e.g. if you need multiple containers such as app and database). See <<_agent_customization,Agent customization>>.
+
+| podVolumes
+| Volumes to make available to the pod.
+
+| podServiceAccount
+| Serviceaccount to use when running the pod.
+
+| notifyNotGreen
+| Whether to send notifications if the build is not successful. Enabled by default.
+
+| emailextRecipients
+| Notify to this list of emails when `notifyNotGreen` is enabled. It is empty by default.
+
+| branchToEnvironmentMapping
+| Define which branches are deployed to which environments, see <<_git_workflow_branch_to_environment_mapping,Git Workflow / Branch to Environment Mapping>>
+
+| projectId
+| Project ID, e.g. `foo`.
+
+| componentId
+| Component ID, e.g. `be-auth`.
+
+| environmentLimit
+| Number of environments to allow when auto-cloning environments.
+
+| dockerDir
+| The docker directory to use when building the image in openshift. Defaults to `docker`.
+
+| sonarQubeBranch
+| Please use option `branch` on `odsComponentStageScanWithSonar`.
+
+| failOnSnykScanVulnerabilities
+| Deprecated in 3.x! Please use option `failOnVulnerabilities` on `odsComponentStageScanWithSnyk`.
+
+| openshiftBuildTimeout
+| Deprecated in 3.x! Please use option `buildTimeoutMinutes` on `odsComponentStageBuildOpenShiftImage`.
+
+| openshiftRolloutTimeout
+| Deprecated in 3.x! Please use option `deployTimeoutMinutes` on `odsComponentStageRolloutOpenShiftDeployment`.
+
+| testResults
+| Configurable location for xunit test results, in case the build does not put them into `build/test-results/test`.
+
+| commitGitWorkingTree
+| Defaulting to false, if set to true, any changes in the working directory added with `git add` will be committed to the current branch and pushed.
+|===
+
+== Pipeline Context
+
+When you write custom stages inside the closure passed to `odsComponentPipeline`, you have access to the `context`, which is assembled for you on the master node. The `context` can be influenced by changing the config map passed to `odsComponentPipeline`, see <<_pipeline_options,Pipeline Options>>.
+
+The `context` object contains the following properties:
+
+[cols="1,2"]
+|===
+| Property | Description
+
+| jobName
+| Value of JOB_NAME. It is the name of the project of the build.
+
+| buildNumber
+| Value of BUILD_NUMBER. The current build number, such as `153`.
+
+| buildUrl
+| Value of BUILD_URL. The URL where the results of the build can be found (e.g. `http://buildserver/jenkins/job/MyJobName/123/`)
+
+| buildTime
+| Time of the build, collected when the odsComponentPipeline starts.
+
+| credentialsId
+| Credentials identifier (Credentials are created and named automatically by the OpenShift Jenkins plugin).
+
+| tagversion
+| The tagversion is made up of the build number and the first 8 chars of the commit SHA.
+
+| nexusUrl
+| Nexus URL - value taken from `NEXUS_URL`. If `NEXUS_URL` is not present, it will default to `NEXUS_HOST` (which also includes the scheme). `nexusHost` is an alias for `nexusUrl`.
+
+| nexusUsername
+| Nexus username.
+
+| nexusPassword
+| Nexus password.
+
+| nexusUrlWithBasicAuth
+| Nexus URL, including username and password as BasicAuth. `nexusHostWithBasicAuth` is an alias for `nexusUrlWithBasicAuth`.
+
+| sonarQubeEdition
+| Edition of SonarQube in use, determined by `SONAR_EDITION` (defaults to `community`).
+
+| environment
+| The environment which was chosen as the deployment target, e.g. `dev`.
+
+| targetProject
+| Target project, based on the environment. E.g. `foo-dev`.
+
+| cdProject
+| CD project. E.g. `foo-cd`.
+
+| groupId
+| Group ID, defaults to: org.opendevstack.+++<projectID>+++.+++</projectID>+++
+
+| projectId
+| Project ID, e.g. `foo`.
+
+| componentId
+| Component ID, e.g. `be-auth`.
+
+| selector
+| Selector common to all resources of component, defaults to `app=${projectId}-${componentID}` (e.g. `app=foo-be-auth`).
+
+| gitUrl
+| Git URL of repository
+
+| gitBranch
+| Git branch for which the build runs.
+
+| gitCommit
+| Git commit SHA to build.
+
+| shortGitCommit
+| Short Git commit SHA (first 8 chars) to build.
+
+| gitCommitAuthor
+| Git commit author.
+
+| gitCommitMessage
+| Git commit message (sanitized).
+
+| gitCommitRawMessage
+| Git commit message (raw).
+
+| gitCommitTime
+| Git commit time in RFC 3399.
+
+| issueId
+| Jira issue ID if any present in either commit message or branch name (e.g. `123` from commit message `FOO-123: Bar` or branch `feature/FOO-123-bar`). If the issue ID is present in both, the branch name has precedence.
+
+| openshiftHost
+| OpenShift host - value taken from `OPENSHIFT_API_URL`.
+
+| odsSharedLibVersion
+| ODS Jenkins shared library version, taken from reference in `Jenkinsfile`.
+
+| bitbucketUrl
+| Bitbucket URL - value taken from `BITBUCKET_URL`. If BITBUCKET_URL is not present, it will default to `https://<BITBUCKET_HOST>``. `bitbucketHost` is an alias for `bitbucketUrl`.
+
+| dockerDir
+| The docker directory to use when building the image in openshift. Defaults to `docker`.
+|===
+
+== Git Workflow / Branch to Environment Mapping
+
+The shared library does not impose which Git workflow you use. Whether you use https://nvie.com/posts/a-successful-git-branching-model/[git-flow], https://guides.github.com/introduction/flow/[GitHub flow] or a custom workflow, it is possible to configure the pipeline according to your needs by configuring the pipeline option `branchToEnvironmentMapping`. The setting could look like this:
+
+----
+branchToEnvironmentMapping: [
+  'master': 'prod',
+  'develop': 'dev',
+  'hotfix/': 'hotfix',
+  '*': 'review'
+]
+----
+
+There are three ways to reference branches:
+
+* Fixed name (e.g. `master`)
+* Prefix (ending with a slash, e.g. `hotfix/`)
+* Any branch (`*`)
+
+Matches are made top-to-bottom. For prefixes / any branch, a more specific environment might be selected if:
+
+* the branch contains a ticket ID and a corresponding env exists in OpenShift. E.g. for mapping `"feature/": "dev"` and branch `feature/foo-123-bar`, the env `dev-123` is selected instead of `dev` if it exists.
+* the branch name corresponds to an existing env in OpenShift. E.g. for mapping `"release/": "rel"` and branch `release/1.0.0`, the env `rel-1.0.0` is selected instead of `rel` if it exists.
+
+=== Examples
+
+If you use git-flow, the following config fits well:
+
+----
+branchToEnvironmentMapping: [
+  'master': 'prod',
+  'develop': 'dev',
+  'release/': 'rel',
+  'hotfix/': 'hotfix',
+  '*': 'preview'
+]
+----
+
+If you use GitHub Flow, the following config fits well:
+
+----
+branchToEnvironmentMapping: [
+  'master': 'prod',
+  '*': 'preview'
+]
+----
+
+If you use a custom workflow, the config could look like this:
+
+----
+branchToEnvironmentMapping: [
+  'production': 'prod',
+  'master': 'dev',
+  'staging': 'uat'
+]
+----
+
+== Advanced
+
+=== Agent customization
+
+The agent used in the pipeline can be customized by adjusting the `image` (or `imageStreamTag` to
+use. Further, `alwaysPullImage` (defaulting to `true`) can be used to
+determine whether this image should be refreshed on each build.
+
+Resource constraints of the container can be changed via `resourceRequestCpu`,
+`resourceLimitCpu`, `resourceRequestMemory` and `resourceLimitMemory`.
+
+The setting `podVolumes` allows to mount persistent volume claims to the pod
+(the value is passed to the `podTemplate` call as `volumes`).
+
+To completely control the container(s) within the pod, set `podContainers`
+(which is passed to the `podTemplate` call as `containers`).
+
+Configuring of a customized agent container in a `Jenkinsfile`:
+----
+odsComponentPipeline(
+  branchToEnvironmentMapping: [:],
+  podContainers: [
+    containerTemplate(
+      name: 'jnlp', // do not change, see https://github.com/jenkinsci/kubernetes-plugin#constraints
+      image: "${env.DOCKER_REGISTRY}/foo-cd/jenkins-agent-custom",
+      workingDir: '/tmp',
+      resourceRequestCpu: '100m',
+      resourceLimitCpu: '500m',
+      resourceRequestMemory: '2Gi',
+      resourceLimitMemory: '4Gi',
+      alwaysPullImage: true,
+      args: '${computer.jnlpmac} ${computer.name}'
+    )
+  ],
+  ...
+  ) { context ->
+  stageBuild(context)
+  ...
+}
+----
+See the https://github.com/jenkinsci/kubernetes-plugin#pod-and-container-template-configuration[kubernetes-plugin]
+documentation for possible configuration.
+
+=== Git LFS (Git Large File Storage extension)
+
+If you are working with large files (e.g.: binary files, media files, files bigger than 5MB...),
+you can follow the following steps:
+
+* Check this HOWTO about https://www.atlassian.com/git/tutorials/git-lfs[Git LFS]
+* Track your large files in your local clone, as explained in previous step
+* Enable Git LFS in your repository (if Bitbucket: under repository's settings main page you can enable it)
+
+*NOTE*: if already having a repository with large files and you want to migrate it to using git LFS:
+
+[source,bash]
+----
+git lfs migrate
+----
+
+=== Deploying OpenShift resources from source code
+
+By default, the component pipeline uses existing OpenShift resources, and just creates new images / deployments related to them. However, it is possible to control all OpenShift resources in code, following the infrastructure-as-code approach. This can be done by defining the resources as https://docs.openshift.com/container-platform/3.11/dev_guide/templates.html[OpenShift templates] in the directory `openshift` of the repository, which will then get applied by https://github.com/opendevstack/tailor[Tailor] when running the pipeline. The advantage of this approach:
+
+- All changes to OpenShift resources are traceble: who did the change and when?
+- Moving your application between OpenShift projects or even clusters is trivial
+- Changes to your application code that require a change in configuration (e.g. a new environment variable) as well can be done together in one commit.
+
+If you have an existing component for which you want to enable this feature, you simply need to run:
+
+[source,bash]
+----
+mkdir -p openshift
+tailor -n foo-dev export -l app=foo-bar > openshift/template.yml
+----
+
+Commit the result and the component pipeline should show in the ouput whether there has been drift and how it was reconciled.
+
+When using this approach, you need to keep a few things in mind:
+
+- Any changes done in the OpenShift web console will effectively be reverted with each deploy. When you store templates in code, all changes must be applied to them.
+- You can always preview the changes that will happen by running `tailor diff` from your local machine.
+- `DeploymentConfig` resources allow to specify config and image triggers (and ODS configures them by default like this). When deploying via Tailor, it is recommended to remove the image trigger, otherwise you might trigger two deployments: one when config (such as an environment variable) changes, and one when the image changes. When you remove the image trigger, it is crucial to add the internal registry to the `image` field, and to configure `imagePullPolicy: Always` for the container (otherwise you might roll out old images).
+
+If you want to use https://github.com/opendevstack/tailor#working-with-secrets[encrypted secrets with Tailor], you have to create a keypair for Jenkins so that the pipeline can use it to decrypt the parameters. The easiest way to do this is to create an OpenShift secret named `tailor-private-key` and sync it with Jenkins as a credential. Example:
+```
+tailor secrets generate-key jenkins@example.com
+oc -n foo-cd create secret generic tailor-private-key --from-file=ssh-privatekey=private.key
+oc -n foo-cd label secret tailor-private-key credential.sync.jenkins.openshift.io=true
+```
+
+Controlling your OpenShift resources in source code enables a lot of other use cases as well. For example, you might want to preview changes to a component before merging the source code. By using Tailor to deploy your templates, you can create multiple running components from one repository, e.g. one per feature branch. Following are some steps how to achieve this:
+
+First, add `'feature/': 'dev'` to the `branchToEnvironmentMapping`. Then, create new variables in the pipeline block:
+[source,groovy]
+----
+def componentSuffix = context.issueId ? "-${context.issueId}" : ''
+def suffixedComponent = context.componentId + componentSuffix
+----
+
+With this in place, you can adapt the rollout stage:
+[source,groovy]
+----
+odsComponentStageRolloutOpenShiftDeployment(
+  context,
+  [
+    tailorSelector: "app=${context.projectId}-${suffixedComponent}",
+    tailorParams: ["COMPONENT_SUFFIX=${componentSuffix}"]
+  ]
+)
+----
+
+And finally, in your `openshift/template.yml`, you need to add the `COMPONENT_SUFFIX` parameter and append `${COMPONENT_SUFFIX}` everywhere the component ID is used in deployment relevant resources (such as `Service`, `DeploymentConfig`, `Route`). That's all you need to have automatic previews!
+
+You might want to clean up when the code is merged, which can be achieved with something like this:
+[source,groovy]
+----
+stage('Cleanup preview resources') {
+  if (context.environment != 'dev') {
+    echo "Not performing cleanup outside dev environment"; return
+  }
+  def mergedIssueId = org.ods.services.GitService.mergedIssueId(context.projectId, context.repoName, context.gitCommitRawMessage)
+  if (mergedIssueId) {
+    echo "Perform cleanup of suffix '-${mergedIssueId}'"
+    sh("oc -n ${context.targetProject} delete all -l app=${context.projectId}-${context.componentId}-${mergedIssueId}")
+  } else {
+    echo "Nothing to cleanup"
+  }
+}
+----
+
+
+=== Interacting with Bitbucket
+
+The shared library already sets the build status of the built commit. It also
+provides convenience methods on `BitbucketService` to interact with pull
+requests:
+
+- `String createPullRequest(String repo, String fromRef, String toRef, String title, String description, List<String> reviewers)`
+  creates a pull request in `repo` from branch `fromRef` to `toRef`.
+  `reviewers` is a list of bitbucket user names.
+- `List<String> getDefaultReviewers(String repo)` returns a list of bitbucket
+  user names (not display names) that are listed as the default reviewers of the given `repo`.
+- `String getDefaultReviewerConditions(String repo)` returns all default
+  reviewer conditions of the given `repo`, which can be parsed using `readJSON`.
+- `String getPullRequests(String repo, String state = 'OPEN')` returns
+  all open pull requests, which can be parsed using `readJSON`.
+- `Map findPullRequest(String repo, String branch, String state = 'OPEN')`
+  tries to find a pull request for the given `branch`, and returns a map with
+  its ID and target branch.
+- `void postComment(String repo, int pullRequestId, String comment)`
+  allows to add `comment` to the PR identified by `pullRequestId`.
+
+To make use of these methods, you need to get an instance of the `BitbucketService`
+in your `Jenkinsfile` like this:
+[source,groovy]
+.Jenkinsfile
+----
+import org.ods.services.ServiceRegistry
+import org.ods.services.BitbucketService
+
+def sayHello(def context) {
+  stage('Say Hello') {
+    def bitbucketService = ServiceRegistry.instance.get(BitbucketService)
+    bitbucketService.postComment(context.repoName, 1, "Hello world")
+  }
+}
+----
+
+=== Skipping pipeline runs
+
+If the subject of the built commit message contains `[ci skip]`, `[skip ci]` or `\\***NO_CI***`, the pipeline is skipped.
+
+[source,sh]
+----
+# skip pipeline (one-line commit)
+$ git commit -m "docs: update README [ci skip]"
+
+# run pipeline (multi-line commit) as it is not part of the subject
+$ git commit -m "docs: update README
+
+- add section installation
+- [ci skip]"
+----
+
+The Jenkins build status will be set to `NOT_BUILT`, the Bitbucket build status to `SUCCESSFUL` (as there is no "skipped" state). The pipeline will start to execute initially, but abort before launching any agent nodes or starting any of the stages defined in the `Jenkinsfile`.
